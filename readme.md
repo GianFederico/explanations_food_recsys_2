@@ -3,9 +3,10 @@
 :warning: This repository contains a newer version of the Explanations service by Matteo Mannavola and Roberta Sallustio. The original work is available in the [Explanations Food Recsys](https://github.com/swapUniba/explanations_food_recsys) repository. Further documentation of this new version is available in [foodWebApp/docs](https://github.com/swapUniba/explanations_food_recsys_2/tree/master/foodWebApp/docs). :warning:
 
 The system consists of the Recommender service, the Explanations service and the web application.
-The "foodWebApp" folder contains the Recommender and Explanations services.
-The "foodrecsys2.1" folder contains the "Rec Sys" web application.
-The "foodRecExp" folder contains the "Rec Exp" web application.
+
+The "foodWebApp" folder contains the Recommender and Explanations services (including a new command-line client for the explanation).<br />
+The "foodrecsys2.1" folder contains the "Rec Sys" web application.<br />
+The "foodRecExp" folder contains the "Rec Exp" web application.<br />
 
 
 ## Installation
@@ -56,7 +57,9 @@ The service runs on port 5003. The service builds a JSON containing the name of 
 
 A new feature included in this version of the Explanations service is a command-line client. The server is assumed to be already running.
 
-The client can be used by invoking the `cmd_expl.py` Python script via command line. See the documentation in [foodWebApp/docs](https://github.com/swapUniba/explanations_food_recsys_2/tree/master/foodWebApp/docs) or use `-h`/`--help` to find information about the expected arguments.
+The client can be used by invoking the `cmd_expl.py` Python script via command line.
+
+See the documentation in [foodWebApp/docs](https://github.com/swapUniba/explanations_food_recsys_2/tree/master/foodWebApp/docs) or use `-h`/`--help` to find information about the expected arguments.
 
 
 ## Web Application "Rec Exp"
