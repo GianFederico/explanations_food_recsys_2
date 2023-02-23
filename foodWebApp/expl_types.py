@@ -198,7 +198,6 @@ def foodPreferences_one(userRestrictions, listRestrictions, restrictions, recipe
                 if recipe[isRestr] == 0:
                     not_followed_restrictions.append(restr_and_desc[isRestr][0])
 
-
             if not_followed_restrictions:
                 explanation = recipe["title"] + " does not respect all of your restrictions, since it is not "
                 for restr in not_followed_restrictions:
