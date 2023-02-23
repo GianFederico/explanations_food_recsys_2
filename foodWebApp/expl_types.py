@@ -197,7 +197,6 @@ def foodPreferences_one(userRestrictions, listRestrictions, restrictions, recipe
             for isRestr in restr_and_desc:
                 if recipe[isRestr] == 0:
                     not_followed_restrictions.append(restr_and_desc[isRestr][0])
-                    print(restr_and_desc[isRestr][0])
 
 
             if not_followed_restrictions:
