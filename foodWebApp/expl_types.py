@@ -667,7 +667,7 @@ def userFeatureHealthBenefits(user, recipeA, recipeB, nutrients):
                 + " g) and " + re.sub(r"(\w)([A-Z])", r"\1 \2", recipeA_nutr2).lower() \
                 + " (" + str(recipeA[recipeA_nutr2]) \
                 + " g), among all nutrients in the recipe, are the closest to the respective recommended intakes (" \
-                + str(nutrients[recipeA_nutr1]["RI"]) + " g and " + str(nutrients[recipeA_nutr2]["RI"]) + " g). "
+                + str(round(nutrients[recipeA_nutr1]["RI"] * 0.4)) + " g and " + str(round(nutrients[recipeA_nutr2]["RI"] * 0.4)) + " g). "
 
     if user["BMI"] == "under" or user["BMI"] == "over":
         explanation += "A correct intake of such nutrients can help you to " + lose_or_gain + " weight. "
