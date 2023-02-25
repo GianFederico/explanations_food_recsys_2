@@ -1498,7 +1498,7 @@ def smartExplanation(user, recipeA, recipeB, listRestrictions, nutrients, restri
     explanation = ""
     explanationDone_flag = 0
 
-    if recipeB is not None:
+    if recipeB is None:
         expl = foodPreferences_one(user["User_restriction"], listRestrictions, restrictions, recipeA)
     else:
         expl = foodPreferences_two(user["User_restriction"], listRestrictions, restrictions, recipeA, recipeB)
