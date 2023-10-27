@@ -1,3 +1,21 @@
+in order to start the server and explanation sys you have to:
+```
+    pip install flask flask-restful
+    pip install flask-restful
+    pip install pandas
+
+    *in two different cmd*
+        python food_rs_webservice.py
+        python web_expl.py
+
+    python foodWebApp/cmd_expl.py --type 2 --style -1 --mood neutral --stress no --depression no --bmi over --activity low --goal lose --sleep low --restr gluten-free vegetarian --imgurl1 https%3A%2F%2Fwww.giallozafferano.it%2Fimages%2Fricette%2F201%2F20113%2Ffoto_hd%2Fhd650x433_wm.jpg --imgurl2 https%3A%2F%2Fwww.giallozafferano.it%2Fimages%2Fricette%2F176%2F17635%2Ffoto_hd%2Fhd650x433_wm.jpg --difficulty 
+1 --user_time 0 --user_cost 5 --health_style 5 --health_condition 5 --user_ingredients oil carrot --user_age U40 --season winter --sex m
+```
+
+
+
+
+
 # Explanations Food RecSys 2
 
 :warning: This repository contains a newer version of the Explanations service by Matteo Mannavola and Roberta Sallustio. The original work is available in the [Explanations Food Recsys](https://github.com/swapUniba/explanations_food_recsys) repository. Further documentation of this new version is available in [foodWebApp/docs](https://github.com/swapUniba/explanations_food_recsys_2/tree/master/foodWebApp/docs). :warning:
