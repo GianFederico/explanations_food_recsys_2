@@ -3,6 +3,7 @@ import numpy as np
 from functools import reduce
 import re
 from datetime import datetime
+import os
 
 """
 The popularity_one explanation function returns a string
@@ -89,8 +90,20 @@ def foodGoals_one(recipe, user):
         explanation += "It may not be a good choice, since you want to gain weight. "
 
     else:
-        explanation += "40% of the average daily calorie intake for a " + man_or_woman + " is " + str(meal_kcal) + " Kcal."
-
+        intake=meal_kcal/0.4
+        percentage=(recipe_calories/intake)*100
+        explanation += "The average daily calorie intake for a " + man_or_woman + " is " + str(intake) + " Kcal. This recipe represents the " + str(percentage) + "% of your daily intake."
+        #explanation += "40% of the average daily calorie intake for a " + man_or_woman + " is " + str(meal_kcal) + " Kcal."
+        for i in range (0,30):
+            explanation += "@@@@@HERE -> " + str(recipe[i]) + os.linesep
+            print("@@@@@HERE -> " + str(recipe[i]))
+        # explanation += "@@@@@HERE -> " + str(recipe[0])
+        # explanation += "@@@@@HERE -> " + str(recipe[1])
+        # explanation += "@@@@@HERE -> " + str(recipe[2])
+        # explanation += "@@@@@HERE -> " + str(recipe[3])
+        # explanation += "@@@@@HERE -> " + str(recipe[4])
+        # explanation += "@@@@@HERE -> " + str(recipe[5])
+        # explanation += "@@@@@HERE -> " + str(recipe[6])
     return explanation
 
 
@@ -199,7 +212,7 @@ def foodPreferences_one(userRestrictions, listRestrictions, restrictions, recipe
                     not_followed_restrictions.append(restr_and_desc[isRestr][0])
 
             if not_followed_restrictions:
-                explanation = recipe["title"] + " does not respect all of your restrictions, since it is not "
+                explanation = recipe["title"] + " does not respect any of your restrictions, since it is not "
                 for restr in not_followed_restrictions:
                     explanation += restr + " nor "
 

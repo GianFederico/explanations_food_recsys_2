@@ -11,11 +11,13 @@ python cmd_expl.py --type 2 --style -1 --mood neutral --stress no --depression n
 --imgurl2 https%3A%2F%2Fwww.giallozafferano.it%2Fimages%2Fricette%2F176%2F17635%2Ffoto_hd%2Fhd650x433_wm.jpg 
 --difficulty 1 --user_time 0 --user_cost 5 --health_style 5 --health_condition 5 --user_ingredients oil carrot 
 --user_age U40 --season winter --sex m
+
+python foodWebApp/cmd_expl.py --type 2 --style -1 --mood neutral --stress no --depression no --bmi over --activity low --goal lose --sleep low --restr gluten-free vegetarian --imgurl1 https%3A%2F%2Fwww.giallozafferano.it%2Fimages%2Fricette%2F201%2F20113%2Ffoto_hd%2Fhd650x433_wm.jpg --imgurl2 https%3A%2F%2Fwww.giallozafferano.it%2Fimages%2Fricette%2F176%2F17635%2Ffoto_hd%2Fhd650x433_wm.jpg --difficulty 1 --user_time 0 --user_cost 5 --health_style 5 --health_condition 5 --user_ingredients oil carrot --user_age U40 --season winter --sex m
 """
 parser = argparse.ArgumentParser(prog='cmd_expl', description='CMD explanation')
 parser.add_argument('--type', required=True, help="[0,18]")
 parser.add_argument('--style', required=True, help="-1 for single and comparative; 0 for single explanations; 1 for comparative explanation")
-parser.add_argument('--imgurl1', required=True, help="URL of recipeA's image from GialloZafferano")
+parser.add_argument('--imgurl1', help="URL of recipeA's image from GialloZafferano")
 parser.add_argument('--imgurl2', help="URL of recipeB's image from GialloZafferano")
 parser.add_argument('--user_age', help="numerical age or U20/U30/U40/U50/U60/O60")
 parser.add_argument('--mood', help="bad/good/neutral")
@@ -41,7 +43,9 @@ url = "http://127.0.0.1:5003/exp/?"
 
 url += "type=" + args.type + "&"
 url += "style=" + args.style + "&"
-url += "imgurl1=" + args.imgurl1 + "&"
+
+if args.imgurl1 is not None:
+    url += "imgurl1=" + args.imgurl1 + "&"
 
 if args.imgurl2 is not None:
     url += "imgurl2=" + args.imgurl2 + "&"
