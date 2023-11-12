@@ -17,7 +17,7 @@ python foodWebApp/cmd_expl.py --type 2 --style -1 --mood neutral --stress no --d
 parser = argparse.ArgumentParser(prog='cmd_expl', description='CMD explanation')
 parser.add_argument('--type', required=True, help="[0,18]")
 parser.add_argument('--style', required=True, help="-1 for single and comparative; 0 for single explanations; 1 for comparative explanation")
-parser.add_argument('--imgurl1', help="URL of recipeA's image from GialloZafferano")
+parser.add_argument('--imgurl1', required=True, help="URL of recipeA's image from GialloZafferano")
 parser.add_argument('--imgurl2', help="URL of recipeB's image from GialloZafferano")
 parser.add_argument('--user_age', help="numerical age or U20/U30/U40/U50/U60/O60")
 parser.add_argument('--mood', help="bad/good/neutral")

@@ -94,16 +94,7 @@ def foodGoals_one(recipe, user):
         percentage=(recipe_calories/intake)*100
         explanation += "The average daily calorie intake for a " + man_or_woman + " is " + str(intake) + " Kcal. This recipe represents the " + str(percentage) + "% of your daily intake."
         #explanation += "40% of the average daily calorie intake for a " + man_or_woman + " is " + str(meal_kcal) + " Kcal."
-        for i in range (0,30):
-            explanation += "@@@@@HERE -> " + str(recipe[i]) + os.linesep
-            print("@@@@@HERE -> " + str(recipe[i]))
-        # explanation += "@@@@@HERE -> " + str(recipe[0])
-        # explanation += "@@@@@HERE -> " + str(recipe[1])
-        # explanation += "@@@@@HERE -> " + str(recipe[2])
-        # explanation += "@@@@@HERE -> " + str(recipe[3])
-        # explanation += "@@@@@HERE -> " + str(recipe[4])
-        # explanation += "@@@@@HERE -> " + str(recipe[5])
-        # explanation += "@@@@@HERE -> " + str(recipe[6])
+        print(recipe)
     return explanation
 
 
