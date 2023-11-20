@@ -3,14 +3,13 @@ import numpy as np
 from functools import reduce
 import re
 from datetime import datetime
+import textwrap
 import os
 
 """
 The popularity_one explanation function returns a string
 containing the average rating of the given recipe and the number of ratings.
 """
-
-
 def popularity_one(recipe):
     explanation = recipe["title"] + " has an average rating of " + str(recipe["ratingValue"]) \
                   + "/5 out of " + str(recipe["ratingCount"])[:-2] + " community ratings."
@@ -22,8 +21,6 @@ The popularity_two explanation function returns a string
 with a comparison of recipeA's rating count with respect to recipeB's.
 Their respective average ratings are also shown.
 """
-
-
 def popularity_two(recipeA, recipeB):
     explanation = ""
     recipeA_name = recipeA["title"]
@@ -51,17 +48,16 @@ def popularity_two(recipeA, recipeB):
 
 """
 The foodGoals_one explanation function takes as input a recipe and a user.
-The user's sex and goal (lose -> lose weight, gain -> gain weight, no -> no goals)
+The user's sex and goal (lose -> lose weight, gain -> gain weight, no -> maintain weight)
 and the recipe's calories are taken into account to check if the given recipe
 may be a good fit for the user.
 """
-
-
 def foodGoals_one(recipe, user):
     explanation = ""
     recipe_calories = recipe["calories"]
     user_sex = user["Sex"]
     user_goal = user["Goal"]
+    user_activity = user["Activity"]
 
     explanation = recipe["title"] + " has " + str(recipe_calories) + " Kcal. "
 
@@ -69,32 +65,60 @@ def foodGoals_one(recipe, user):
     # Average daily calorie intake for women: 2000 Kcal
     # Assumption: a single meal is 40% of the daily intake
 
-    if user_sex is None or user_sex == "":
-        meal_kcal = 2250 * 0.4
-        man_or_woman = "person of your characteristics"
-    elif user_sex == "m":
-        meal_kcal = 2500 * 0.4
-        man_or_woman = "man"
-    elif user_sex == "f":
-        meal_kcal = 2000 * 0.4
-        man_or_woman = "woman"
+    # Average daily calorie intake for men and women
+    average_daily_intake = {
+        "m": {"lose": 2000, "gain": 2500, "no": 2250},
+        "f": {"lose": 1500, "gain": 1800, "no": 1650},
+    }
 
-    if user_goal == "lose" and recipe_calories < meal_kcal:
-        explanation += "It is a good choice, since you want to lose weight. "
-    elif user_goal == "lose" and recipe_calories >= meal_kcal:
-        explanation += "It may not be a good choice, since you want to lose weight. "
-
-    elif user_goal == "gain" and recipe_calories >= meal_kcal:
-        explanation += "It is a good choice, since you want to gain weight. "
-    elif user_goal == "gain" and recipe_calories < meal_kcal:
-        explanation += "It may not be a good choice, since you want to gain weight. "
+    if user_sex is None or user_sex == "": # TO CHECK cannot take none or "" as user[sex] value 
+        intake = average_daily_intake["m"]["no"] if user_goal == "no" else average_daily_intake["f"]["no"]
+        man_or_woman = "person of unspecified sex"
+        if user_activity == 'low':
+            intake += 0
+        elif user_activity == 'normal':
+            intake += 150
+        elif user_activity == 'high':
+            intake +=250
 
     else:
-        intake=meal_kcal/0.4
-        percentage=(recipe_calories/intake)*100
-        explanation += "The average daily calorie intake for a " + man_or_woman + " is " + str(intake) + " Kcal. This recipe represents the " + str(percentage) + "% of your daily intake."
-        #explanation += "40% of the average daily calorie intake for a " + man_or_woman + " is " + str(meal_kcal) + " Kcal."
-        print(recipe)
+        intake = average_daily_intake[user_sex][user_goal]
+        man_or_woman = "man" if user_sex == "m" else "woman"
+        if user_activity == 'low':
+            intake += 0
+        elif user_activity == 'normal':
+            intake += 150
+        elif user_activity == 'high':
+            intake +=250
+
+    if recipe_calories < intake*0.15 and user_goal=='lose':
+        explanation += "It is a good choice, since you are aiming to " + user_goal + " weight. "
+    elif recipe_calories > intake*0.15 and user_goal=='lose':
+        explanation += "It may not be the best choice, since you are aiming to " + user_goal + " weight (high-kcal). "
+
+    if recipe_calories > intake*0.25 and user_goal=='gain':
+        explanation += "It is a good choice, since you are aiming to " + user_goal + " weight. "
+    elif recipe_calories < intake*0.25 and user_goal=='gain':
+        explanation += "It may not be the best choice, since you are aiming to " + user_goal + " weight (low-kcal). "
+
+    if intake*0.15 < recipe_calories < intake*0.25 and user_goal=='no':
+        explanation += "It is a good choice, since you are aiming to maintain weight. "
+    elif recipe_calories < intake*0.15  and user_goal=='no':
+        explanation += "It may not be the best choice, since you are aiming to maintain weight (low-kcal). "
+    elif recipe_calories > intake*0.25 and user_goal=='no':
+        explanation += "It may not be the best choice, since you are aiming to maintain weight (high-kcal). "
+
+    percentage = round((recipe_calories / intake) * 100, 2)
+    explanation += (
+        "The average daily calorie intake for a "
+        + man_or_woman
+        + " with your goal and type of activity is "
+        + str(intake)
+        + " Kcal and this recipe represents "
+        + str(percentage)
+        + "% of your daily intake."
+    )
+
     return explanation
 
 
@@ -104,64 +128,108 @@ The user's sex and goal (lose -> lose weight, gain -> gain weight, no -> no goal
 and the recipes' calories are taken into account to compare the two recipes and
 check which one may be a better fit for the user.
 """
-
-
 def foodGoals_two(recipeA, recipeB, user):
-    explanation = ""
-    recipeA_name = recipeA["title"]
-    recipeB_name = recipeB["title"]
+    explanation_A = ""
+    explanation_B = ""
     recipeA_calories = recipeA["calories"]
     recipeB_calories = recipeB["calories"]
     user_sex = user["Sex"]
     user_goal = user["Goal"]
+    user_activity = user["Activity"]
 
-    # Average daily calorie intake for men: 2500 Kcal
-    # Average daily calorie intake for women: 2000 Kcal
-    # Assumption: a single meal is 40% of the daily intake
+    average_daily_intake = {
+    "m": {"lose": 2000, "gain": 2500, "no": 2250},
+    "f": {"lose": 1500, "gain": 1800, "no": 1650},
+    }
+    intake = average_daily_intake[user_sex][user_goal]
+    man_or_woman = "man" if user_sex == "m" else "woman"
 
-    if user_sex is None or user_sex == "":
-        meal_kcal = 2250 * 0.4
-        man_or_woman = "person of your characteristics"
-    elif user_sex == "m":
-        meal_kcal = 2500 * 0.4
-        man_or_woman = "man"
-    elif user_sex == "f":
-        meal_kcal = 2000 * 0.4
-        man_or_woman = "woman"
+    if user_activity == 'low':
+        intake += 0
+    elif user_activity == 'normal':
+        intake += 150
+    elif user_activity == 'high':
+        intake +=250
 
     if recipeA_calories == recipeB_calories:
-        explanation = recipeA_name + " is as caloric as " + recipeB_name + ". \
-                              Both recipes have " + recipeA_calories + " Kcal. \
-                              40% of the average daily calorie intake for a " + man_or_woman + " " \
-                              "is " + str(meal_kcal) + " Kcal."
+        explanation = "Both recipies have the same amount of Kcals. "
+        explanation += recipeA["title"] + " has " + str(recipeA_calories) + "Kcal and "
+        explanation += recipeB["title"] + " has " + str(recipeB_calories) + "Kcal. "
+        same_kcals = recipeA["calories"]
+
+        average_daily_intake = {
+        "m": {"lose": 2000, "gain": 2500, "no": 2250},
+        "f": {"lose": 1500, "gain": 1800, "no": 1650},
+        }
+
+        if user_sex is None or user_sex == "": # TO CHECK cannot take none or "" as user[sex] value 
+            intake = average_daily_intake["m"]["no"] if user_goal == "no" else average_daily_intake["f"]["no"]
+            man_or_woman = "person of unspecified sex"
+
+        if user_activity == 'low':
+            intake += 0
+        elif user_activity == 'normal':
+            intake += 150
+        elif user_activity == 'high':
+            intake +=250
+
+        if same_kcals < intake*0.15 and user_goal=='lose':
+            explanation += "They are a good choice, since you are aiming to " + user_goal + " weight."
+        elif same_kcals > intake*0.15 and user_goal=='lose':
+            explanation += "They may not be the best choice, since you are aiming to " + user_goal + " weight (high-kcal). "
+
+        if same_kcals > intake*0.25 and user_goal=='gain':
+            explanation += "They are a good choice, since you are aiming to " + user_goal + " weight. "
+        elif same_kcals < intake*0.25 and user_goal=='gain':
+            explanation += "They may not be the best choice, since you are aiming to " + user_goal + " weight (low-kcal). "
+
+        if intake*0.15 < same_kcals < intake*0.25 and user_goal=='no':
+            explanation += "They are a good choice, since you are aiming to maintain weight. "
+        elif same_kcals < intake*0.15  and user_goal=='no':
+            explanation += "They may not be the best choice, since you are aiming to maintain weight (low-kcal). "
+        elif same_kcals > intake*0.25 and user_goal=='no':
+            explanation += "They may not be the best choice, since you are aiming to maintain weight (high-kcal). "
+
+        percentage = round((same_kcals / intake) * 100, 2)
+        explanation += (
+            "The average daily calorie intake for a "
+            + man_or_woman
+            + " with your goal and type of activity is "
+            + str(intake)
+            + " Kcal and this recipe represents "
+            + str(percentage)
+            + "% of your daily intake."
+        )
     else:
-        if recipeA_calories > recipeB_calories:
-            moreCal_name = recipeA_name
-            moreCal_cal = recipeA_calories
-            lessCal_name = recipeB_name
-            lessCal_cal = recipeB_calories
-        else:
-            moreCal_name = recipeB_name
-            moreCal_cal = recipeB_calories
-            lessCal_name = recipeA_name
-            lessCal_cal = recipeA_calories
+        # For recipeA #is it ok to work on the string?
+        explanation_A = foodGoals_one(recipeA, user)
+        percentage = round((recipeA_calories / intake) * 100, 2)
 
-        if user_goal == "lose":
-            explanation = lessCal_name + " has less calories (" + str(lessCal_cal) + " Kcal) than " \
-                          + moreCal_name + " (" + str(
-                moreCal_cal) + " Kcal). It could help you reaching your goal of losing weight."
-
-        elif user_goal == "gain":
-            explanation = moreCal_name + " has more calories (" + str(moreCal_cal) + " Kcal) than " \
-                          + lessCal_name + " (" + str(
-                lessCal_cal) + " Kcal). It could help you reaching your goal of gaining weight."
+        prefix_to_remove= "The average daily calorie intake for a man with your goal and type of activity is xxxx Kcal and"
+        if user_sex == 'm':
+            if percentage > 9.99:
+                expl=(str(explanation_A))
+                trimmed_expl= expl[len(prefix_to_remove):]
+            else:
+                expl=(str(explanation_A))
+                trimmed_expl= expl[len(prefix_to_remove):]
 
         else:
-            explanation = moreCal_name + " has more calories (" + str(moreCal_cal) + " Kcal) than " \
-                          + lessCal_name + " (" + str(lessCal_cal) + " Kcal). 40% of the average " \
-                          "daily calorie intake for a " + man_or_woman + " is " + str(meal_kcal) + " Kcal."
+            if percentage > 9.99:
+                expl=(str(explanation_A))
+                trimmed_expl= expl[len(prefix_to_remove):]
+            else:
+                expl=(str(explanation_A))
+                trimmed_expl= expl[len(prefix_to_remove):]
+        # For recipeB
+        explanation_B = foodGoals_one(recipeB, user)
 
-    return explanation
+        # TO DO CHECK % od daily intake for BOTH recipes not only one
+        # TO DO caso in cui voglio perdere peso e tutte e due le ricette sono nel range di perdita
+        # TO DO caso in cui voglio guadagnare peso e tutte e due le ricette sono nel range di guadagno
+        explanation = trimmed_expl + explanation_B
+
+    return explanation  
 
 
 """
@@ -175,8 +243,6 @@ Also, if no user restriction is specified (-1)
 or if the specified user restrictions are not included in the list mentioned above (-2),
 respective error codes are returned.
 """
-
-
 def foodPreferences_one(userRestrictions, listRestrictions, restrictions, recipe):
     explanation = ""
     restr_and_desc = {}
@@ -225,9 +291,7 @@ def foodPreferences_one(userRestrictions, listRestrictions, restrictions, recipe
 """
 The foodPreferences_two explanation function calls foodPreferences_one on two recipes.
 """
-
-
-def foodPreferences_two(userRestrictions, listRestrictions, restrictions, recipeA, recipeB):
+def foodPreferences_two(userRestrictions, listRestrictions, restrictions, recipeA, recipeB): 
     explanation = ""
 
     explA = foodPreferences_one(userRestrictions, listRestrictions, restrictions, recipeA)
@@ -249,9 +313,7 @@ Two lists are also returned: greatList and smallList.
 They respectively contain the nutrients that exceed and subceed
 the average meal intake’s (or recipeB’s) respective quantity.
 """
-
-
-def foodFeatures(recipeA, recipeB, nutrients):
+def foodFeatures(recipeA, recipeB, nutrients): #@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@meh@@@@@@@@@@@@@@@@@@@@@@@
     explanation = ""
 
     recipeA_name = recipeA["title"]
@@ -312,8 +374,6 @@ The convertRecipeDifficulty function takes as input
 an Italian string for a recipe difficulty (Molto facile, Facile...) or a number in a 1-5 scale
 and returns the corresponding number in a 1-5 scale and an English translation.
 """
-
-
 def convertRecipeDifficulty(recipe_difficulty):
     num = -1
     en = ""
@@ -339,8 +399,6 @@ def convertRecipeDifficulty(recipe_difficulty):
 The userSkills_one explanation function takes as input the user's cooking experience and a recipe.
 It returns a string with a comparison between the user's skills and the recipe's difficulty.
 """
-
-
 def userSkills_one(user_skills, recipe):
     explanation = ""
 
@@ -360,8 +418,6 @@ def userSkills_one(user_skills, recipe):
 The userSkills_twp explanation function takes as input the user's cooking experience and two recipes.
 The recipes' difficulties are compared and the easier recipe is compared with the user's skills.
 """
-
-
 def userSkills_two(user_skills, recipeA, recipeB):
     explanation = ""
 
@@ -393,8 +449,6 @@ def userSkills_two(user_skills, recipeA, recipeB):
 """
 The compareCalories function provides a comparison of the quantity of calories between two recipes.
 """
-
-
 def compareCalories(recipeA_name, recipeB_name, recipeA_cal, recipeB_cal):
     explanation = ""
 
@@ -419,8 +473,6 @@ The output is two lists:
 - one containing recipeA's top 2 nutrients that surpass 40% of the reference daily intake (or recipeB if recipeB != None)
 - one containing recipeA's 2 nutrients with the lowest quantities
 """
-
-
 def rankNutrientsOffsets(recipeA, recipeB, nutrients):
     greatList = []
     smallList = []
@@ -462,8 +514,6 @@ and in userFeatureHealthBenefits.
 It returns a list containing the top 2 nutrients whose values in the given recipe are
 closest to 40% of their respective reference daily intake.
 """
-
-
 def checkClosestNutrientsToRI(recipe, nutrients):
     offsetDict = {}
     closest_to_RI = []
@@ -500,8 +550,6 @@ are added to the explanation.
 
 Then, if recipeB != None, there is a comparison of the amount of calories of the two recipes.
 """
-
-
 def foodFeatureHealthRiskBenefit(recipeA, recipeB, nutrients, type):
     explanation = ""
     smallList = []
@@ -563,8 +611,6 @@ and then connects the recipe A with user characteristics (BMI, mood, depressed/s
 It returns a string with a risk related to the nutrient and the mood/BMI of the user.
 If recipeB != None, there is also a comparison between the recipes' calories.
 """
-
-
 def userFeatureHealthRisk(user, recipeA, recipeB, nutrients):
     smallA = []
     greatA = []
@@ -646,8 +692,6 @@ and then connects the recipe A with user characteristics (BMI, mood, depressed/s
 It returns a string with a benefit related to the nutrient and the mood/BMI of the user.
 If recipeB != None, there is also a comparison between the recipes' calories.
 """
-
-
 def userFeatureHealthBenefits(user, recipeA, recipeB, nutrients):
     explanation = ""
 
@@ -707,8 +751,6 @@ def userFeatureHealthBenefits(user, recipeA, recipeB, nutrients):
 The userTime_one explanation function takes as input the user's preferred preparation time and a recipe.
 It returns a comparison between the user's preference and the recipe's preparation time.
 """
-
-
 def userTime_one(user_time, recipe_values):
     explanation = ""
 
@@ -736,8 +778,6 @@ def userTime_one(user_time, recipe_values):
 The userTime_two explanation function takes as input the user's preferred preparation time and two recipes.
 It returns a comparison between the recipes' preparation times.
 """
-
-
 def userTime_two(user_time, recipeA_values, recipeB_values):
     explanation = ""
 
@@ -770,8 +810,6 @@ The convertCost function takes as input
 an Italian string for a recipe cost (molto basso, basso...) or a 1-4 value
 and returns the corresponding number in a 1-4 scale and an English translation.
 """
-
-
 def convertCost(cost):
     num = -1
     en = ""
@@ -794,8 +832,6 @@ def convertCost(cost):
 The userCosts_one explanation function takes as input the user's preference about cost and a recipe.
 It returns a comparison between the user's preference and the recipe's cost.
 """
-
-
 def userCosts_one(user_cost, recipe_values):
     explanation = ""
     recipe_cost_num, recipe_cost_en = convertCost(recipe_values['cost'])
@@ -853,8 +889,6 @@ def userCosts_two(user_cost, recipeA_values, recipeB_values):
 """
 The rsa_score function computes a score that establishes how healthy a given recipe is according to the FSA guidelines.
 """
-
-
 def rsa_score(recipe_values):
     # divide each value by 1.2 because in the dataset we have
     # the values per portion but the score is calculated per 100g
@@ -902,8 +936,6 @@ def rsa_score(recipe_values):
 """
 This function converts a FSA score into a string and into a comparable number for the user lifestyle.
 """
-
-
 def getScores(score):
     if score <= 5.6:
         score_level_str = "very healthy"
@@ -928,8 +960,6 @@ The userLifestyle_one explanation function takes as input the user's desired lif
 The getScores function is called on rsa_score and its output is then taken into account while comparing
 the desired lifestyle and the current condition.
 """
-
-
 def userLifestyle_one(user_health_lifestyle, user_health_condition, recipe_values):
     explanation = ""
     score_level_cmp, score_level_str = getScores(rsa_score(recipe_values))
@@ -962,8 +992,6 @@ The userLifestyle_two explanation function takes as input the user's current con
 The getScores function is called on rsa_score to obtain the recipes' healthiness scores,
 which are then compared in relation to the user's condition.
 """
-
-
 def userLifestyle_two(user_health_condition, recipeA_values, recipeB_values):
     explanation = ""
     scoreA_level_cmp, scoreA_level_str = getScores(rsa_score(recipeA_values))
@@ -1002,8 +1030,6 @@ a list of ingredients that satisfy certain properties
 (e.g.: rich in specific nutrients, user's favourite, sustainable...)
 and a recipe. The overlapping ingredients are returned.
 """
-
-
 def checkRecipeIngredientsInList(ingredients, recipe_values):
     ingredients_found = []
     recipe_ingredients_str = recipe_values['ingredients']
@@ -1042,8 +1068,6 @@ def checkRecipeIngredientsInList(ingredients, recipe_values):
 The listFavIngredientsInRecipe function is used in userIngredients_one and userIngredients_two
 to show a list of the user's favourite ingredients contained in a given recipe.
 """
-
-
 def listFavIngredientsInRecipe(favIngredientsInRecipe, recipe_values):
     explanation = ""
     if len(favIngredientsInRecipe) == 1:
@@ -1063,8 +1087,6 @@ The userIngredients_one explanation function checks if a given recipe contains t
 ingredients. If any of them are present, it provides an explanation that lists them.
 The list of favourite ingredients contained in the recipe is also returned.
 """
-
-
 def userIngredients_one(user_ingredients, recipe_values):
     explanation = ""
     favIngredientsInRecipe = checkRecipeIngredientsInList(user_ingredients, recipe_values)
@@ -1082,8 +1104,6 @@ The userIngredients_two explanation function checks if two given recipes contain
 ingredients. If any of them are present, it provides an explanation that lists them and compares
 the recipes. The list of favourite ingredients contained in the recipes are also returned.
 """
-
-
 def userIngredients_two(user_ingredients, recipeA_values, recipeB_values):
     explanation = ""
 
@@ -1119,8 +1139,6 @@ The convertAge function takes the user's age as input.
 If it is numeric, it is converted into a range ("U20","U30"...)
 that is compatible with the userAge_one and userAge_two functions.
 """
-
-
 def convertAge(user_age):
     if user_age.isnumeric():
         if int(user_age) < 20:
@@ -1143,8 +1161,6 @@ The userAge_one explanation function evaluates if ingredients that are rich in s
 (depending on the user's age group) are present in a given recipe. An explanation of
 the nutrients needed in the specific age group is also provided.
 """
-
-
 def userAge_one(user_age, recipe_values, richIn):
     explanation = ""
     present_list = []
@@ -1257,8 +1273,6 @@ def userAge_one(user_age, recipe_values, richIn):
 """
 The userAge_two explanation function calls the userAge_one function on two recipes.
 """
-
-
 def userAge_two(user_age, recipeA_values, recipeB_values, richIn):
     explanation = ""
 
@@ -1277,8 +1291,6 @@ The ingredientsSustainability_one explanation function
 returns a string that lists the ingredients with high and low sustainability
 that are present in a given recipe, as well as the respective lists.
 """
-
-
 def ingredientsSustainability_one(recipe, sustainability):
     explanation = ""
 
@@ -1322,8 +1334,6 @@ calls ingredientsSustainability_one on two recipes and then
 compares the quantity of ingredients with high and low sustainability between the recipes.
 It also returns the lists of ingredients with high and low sustainability for both recipes.
 """
-
-
 def ingredientsSustainability_two(recipeA, recipeB, sustainability):
     explanation = ""
 
@@ -1365,8 +1375,6 @@ If the season is specified as a number (1-4), it is converted into a string.
 If the season is not specified at all, it is extracted from the current date.
 A list containing the recipe's seasonal ingredients is also returned.
 """
-
-
 def ingredientsSeasonality_one(recipe, season, seasonality):
     explanation = ""
 
@@ -1408,7 +1416,6 @@ compares the quantity of seasonal ingredients between the recipes.
 It also returns the lists of seasonal ingredients for both recipes.
 """
 
-
 def ingredientsSeasonality_two(recipeA, recipeB, season, seasonality):
     explanation = ""
 
@@ -1435,8 +1442,6 @@ The ingredientsDopamine_one explanation function
 checks if a given recipe contains ingredients that enhance dopamine production.
 A list containing the recipe's dopamine-inducing ingredients is also returned.
 """
-
-
 def ingredientsDopamine_one(recipe, dopamine):
     explanation = ""
 
@@ -1467,8 +1472,6 @@ calls ingredientsDopamine_one on two recipes and then
 compares the quantity of dopamine-inducing ingredients between the recipes.
 It also returns the lists of dopamine-inducing ingredients for both recipes.
 """
-
-
 def ingredientsDopamine_two(recipeA, recipeB, dopamine):
     explanation = ""
 
@@ -1496,8 +1499,6 @@ def ingredientsDopamine_two(recipeA, recipeB, dopamine):
 The smartExplanation explanation function provides a personalized explanation
 for one or two recipes based on various user characteristics.
 """
-
-
 def smartExplanation(user, recipeA, recipeB, listRestrictions, nutrients, restrictions, richIn, sustainability, seasonality, dopamine):
     explanation = ""
     explanationDone_flag = 0
@@ -1637,8 +1638,6 @@ def smartExplanation(user, recipeA, recipeB, listRestrictions, nutrients, restri
 The get_str_exp function returns an explanation of a given type
 (popularity, food features, user features, ecc...)
 """
-
-
 def get_str_exp(user,
                 recipeA_values,
                 recipeB_values,
