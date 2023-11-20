@@ -204,23 +204,22 @@ def foodGoals_two(recipeA, recipeB, user):
         # For recipeA #is it ok to work on the string?
         explanation_A = foodGoals_one(recipeA, user)
         percentage = round((recipeA_calories / intake) * 100, 2)
-
-        prefix_to_remove= "The average daily calorie intake for a man with your goal and type of activity is xxxx Kcal and"
+        
         if user_sex == 'm':
             if percentage > 9.99:
                 expl=(str(explanation_A))
-                trimmed_expl= expl[len(prefix_to_remove):]
+                trimmed_expl= expl[:-148]
             else:
                 expl=(str(explanation_A))
-                trimmed_expl= expl[len(prefix_to_remove):]
+                trimmed_expl= expl[:-147]
 
         else:
             if percentage > 9.99:
                 expl=(str(explanation_A))
-                trimmed_expl= expl[len(prefix_to_remove):]
+                trimmed_expl= expl[:-150]
             else:
                 expl=(str(explanation_A))
-                trimmed_expl= expl[len(prefix_to_remove):]
+                trimmed_expl= expl[:-149]
         # For recipeB
         explanation_B = foodGoals_one(recipeB, user)
 
