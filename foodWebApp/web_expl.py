@@ -133,6 +133,7 @@ class Explain(Resource):
             "ingredientsDopamine_two",          # 16
             "descriptions",                     # 17
             "smartExplanation_two"              # 18
+            "foodMacros_two"                    # 19
         ]
 
         one_recipe_experiment = [
@@ -154,7 +155,8 @@ class Explain(Resource):
             "ingredientsSeasonality_one",       # 15
             "ingredientsDopamine_one",          # 16
             "description",                      # 17
-            "smartExplanation_one"              # 18
+            "smartExplanation_one",             # 18
+            "foodMacros_one"                    # 19
         ]
 
         explanations = {}

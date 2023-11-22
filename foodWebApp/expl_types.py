@@ -228,6 +228,7 @@ def foodGoals_two(recipeA, recipeB, user):
                 explanation += "Anyway, between the two, " + recipeA["title"] + " seems more suitable for you since it has less calories."
 
         #caso maintain? non ha senso farlo
+    print(recipeA)
     return explanation  
 
 
@@ -1842,11 +1843,100 @@ def get_str_exp(user,
         expl += smartExplanation(user, recipeA_values, recipeB_values, listRestrictions, nutrients, restrictions, \
                                  richIn, sustainability, seasonality, dopamine)
 
+    # TYPE: foodMacros   
+    elif type_explanation == 'foodMacros_one' or type_explanation == 'foodMacros_two':
+        expl += foodMacros_one(recipeA_values, user)
+
     return expl
 
 
-def foodMacros_one():
-    pass
+def foodMacros_one(recipe, user):
+    recipe_carbs = recipe["carbohydrates"]
+    recipe_fats = recipe["fat"]
+    recipe_proteins = recipe["proteins"]
+    user_sex = user["Sex"]
+    user_activity= user["Activity"]
+    user_goal = user["Goal"]
 
-def foodMacros_one():
+    explanation = recipe["title"] + " has the following macronutrient distribution: "
+    explanation += f"{recipe_carbs}g of carbs, {recipe_fats}g of fats, and {recipe_proteins}g of proteins. "
+
+  # Ideal macronutrient distribution (assumed as 50%-20%-30%)
+    ideal_macros_distribution = {"carbs": 50, "fats": 20, "proteins": 30}
+
+    if user_sex is None or user_sex == "":
+        ideal_macros = {
+            "carbs": ideal_macros_distribution["carbs"],
+            "fats": ideal_macros_distribution["fats"],
+            "proteins": ideal_macros_distribution["proteins"]
+        }
+        man_or_woman = "person of unspecified sex"
+    else:
+        ideal_macros = {
+            "carbs": ideal_macros_distribution["carbs"],
+            "fats": ideal_macros_distribution["fats"],
+            "proteins": ideal_macros_distribution["proteins"]
+        }
+        man_or_woman = "man" if user_sex == "m" else "woman"
+
+    if user_activity == 'low':
+        ideal_macros["carbs"] += 5
+        ideal_macros["fats"] += 2
+        ideal_macros["proteins"] -= 3
+    elif user_activity == 'normal':
+        ideal_macros["carbs"] += 10
+        ideal_macros["fats"] += 5
+        ideal_macros["proteins"] += 5
+    elif user_activity == 'high':
+        ideal_macros["carbs"] += 15
+        ideal_macros["fats"] += 8
+        ideal_macros["proteins"] += 10
+
+    explanation += (
+        "The ideal macronutrient distribution for a "
+        + man_or_woman
+        + " with your goal and type of activity is "
+        + f"{ideal_macros['carbs']}% carbs, {ideal_macros['fats']}% fats, {ideal_macros['proteins']}% proteins. "
+    )
+
+    # Calculate deviations based on the total of macronutrients
+    total_recipe_macros = (
+        recipe_carbs + recipe_fats + recipe_proteins
+    )
+    
+    # Check if the recipe's macronutrient distribution deviates from the ideal ratio
+    carbs_deviation = abs(
+        (recipe_carbs / total_recipe_macros) * 100 - ideal_macros["carbs"]
+    )
+    fats_deviation = abs(
+        (recipe_fats / total_recipe_macros) * 100 - ideal_macros["fats"]
+    )
+    proteins_deviation = abs(
+        (recipe_proteins / total_recipe_macros) * 100 - ideal_macros["proteins"]
+    )
+
+    # Threshold for considering a significant deviation (you can adjust this as needed)
+    deviation_threshold = 15
+
+    if (
+        carbs_deviation > deviation_threshold
+        or fats_deviation > deviation_threshold
+        or proteins_deviation > deviation_threshold
+    ):
+        explanation += (
+            "This recipe may not be the best choice as it deviates significantly "
+            "from the ideal macronutrient ratio. "
+        )
+        
+        explanation += f"Carbs Deviation: {carbs_deviation:.2f}%, Fats Deviation: {fats_deviation:.2f}%, Proteins Deviation: {proteins_deviation:.2f}%. "
+    else:
+        explanation += (
+            "This recipe is a good choice as it closely aligns with the ideal "
+            "macronutrient distribution. "
+        )
+
+    return explanation
+
+
+def foodMacros_two():
     pass
