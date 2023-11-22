@@ -68,7 +68,7 @@ def foodGoals_one(recipe, user):
     # Average daily calorie intake for men and women
     average_daily_intake = {
         "m": {"lose": 2000, "gain": 2500, "no": 2250},
-        "f": {"lose": 1500, "gain": 1800, "no": 1650},
+        "f": {"lose": 1600, "gain": 1900, "no": 1700},
     }
 
     if user_sex is None or user_sex == "": # TO CHECK cannot take none or "" as user[sex] value 
@@ -116,7 +116,7 @@ def foodGoals_one(recipe, user):
         + str(intake)
         + " Kcal and this recipe represents "
         + str(percentage)
-        + "% of your daily intake."
+        + "% of your daily intake. "
     )
 
     return explanation
@@ -198,36 +198,36 @@ def foodGoals_two(recipeA, recipeB, user):
             + str(intake)
             + " Kcal and this recipe represents "
             + str(percentage)
-            + "% of your daily intake."
+            + "% of your daily intake. "
         )
     else:
         # For recipeA #is it ok to work on the string?
         explanation_A = foodGoals_one(recipeA, user)
-        percentage = round((recipeA_calories / intake) * 100, 2)
-        
-        if user_sex == 'm':
-            if percentage > 9.99:
-                expl=(str(explanation_A))
-                trimmed_expl= expl[:-148]
-            else:
-                expl=(str(explanation_A))
-                trimmed_expl= expl[:-147]
-
-        else:
-            if percentage > 9.99:
-                expl=(str(explanation_A))
-                trimmed_expl= expl[:-150]
-            else:
-                expl=(str(explanation_A))
-                trimmed_expl= expl[:-149]
-        # For recipeB
         explanation_B = foodGoals_one(recipeB, user)
+        useless_expl = (
+            ". The average daily calorie intake for a "
+            + man_or_woman
+            + " with your goal and type of activity is "
+            + str(intake)
+            + " Kcal and ")
 
-        # TO DO CHECK % od daily intake for BOTH recipes not only one
-        # TO DO caso in cui voglio perdere peso e tutte e due le ricette sono nel range di perdita
-        # TO DO caso in cui voglio guadagnare peso e tutte e due le ricette sono nel range di guadagno
-        explanation = trimmed_expl + explanation_B
+        explanation_A = str(explanation_A).replace(useless_expl, ", ")
+        explanation = explanation_A + explanation_B
 
+            
+        if user_goal == 'gain':
+            if recipeA_calories > recipeB_calories:
+                explanation += "Anyway, between the two, " + recipeA["title"] + " seems more suitable for you since it has more calories."
+            else:
+                explanation += "Anyway, between the two, " + recipeB["title"] + " seems more suitable for you since it has more calories."
+
+        if user_goal == 'lose':
+            if recipeA_calories > recipeB_calories:
+                explanation += "Anyway, between the two, " + recipeB["title"] + " seems more suitable for you since it has less calories."
+            else:
+                explanation += "Anyway, between the two, " + recipeA["title"] + " seems more suitable for you since it has less calories."
+
+        #caso maintain? non ha senso farlo
     return explanation  
 
 
@@ -1843,3 +1843,10 @@ def get_str_exp(user,
                                  richIn, sustainability, seasonality, dopamine)
 
     return expl
+
+
+def foodMacros_one():
+    pass
+
+def foodMacros_one():
+    pass
