@@ -228,7 +228,6 @@ def foodGoals_two(recipeA, recipeB, user):
                 explanation += "Anyway, between the two, " + recipeA["title"] + " seems more suitable for you since it has less calories."
 
         #caso maintain? non ha senso farlo
-    print(recipeA)
     return explanation  
 
 
@@ -1844,24 +1843,38 @@ def get_str_exp(user,
                                  richIn, sustainability, seasonality, dopamine)
 
     # TYPE: foodMacros   
-    elif type_explanation == 'foodMacros_one' or type_explanation == 'foodMacros_two':
-        expl += foodMacros_one(recipeA_values, user)
+    elif type_explanation == 'foodMacros_one':
+        expl, _ = foodMacros_one(recipeA_values, user)
+    elif type_explanation == 'foodMacros_two':
+        expl = foodMacros_two(recipeA_values, recipeB_values, user)
 
     return expl
 
-
+"""
+The foodMacros_one function 
+checks if the recipe's macronutrient distribution deviates from an ideal ratio (50-20-30) adjusted based on sex and activity.
+    - ideal_macros["carbs"] / 100                           -> converts the percentage value of the ideal carbs distribution to a decimal.
+    - total_recipe_macros                                   -> sum of the actual values of carbs, fats, and proteins in the recipe. 
+    - total_recipe_macros * (ideal_macros["carbs"] / 100)   -> calculates the amount of carbs that would be present in the recipe if it perfectly matched the ideal distribution(%).                                                        
+    - recipe_macros["carbs"] - (total_recipe_macros * (ideal_macros["carbs"] / 100)) ->
+        subtracts the expected amount of carbs from the actual amount of carbs in the recipe. 
+        The result is the deviation, representing how much the actual carbs content deviates from what is expected based on the ideal distribution.
+"""
 def foodMacros_one(recipe, user):
-    recipe_carbs = recipe["carbohydrates"]
-    recipe_fats = recipe["fat"]
-    recipe_proteins = recipe["proteins"]
+    explanation = ""
+    recipe_macros = {
+        "carbs": recipe["carbohydrates"],
+        "fats": recipe["fat"],
+        "proteins": recipe["proteins"],
+    }
+    
     user_sex = user["Sex"]
-    user_activity= user["Activity"]
-    user_goal = user["Goal"]
+    user_activity = user["Activity"]
 
     explanation = recipe["title"] + " has the following macronutrient distribution: "
-    explanation += f"{recipe_carbs}g of carbs, {recipe_fats}g of fats, and {recipe_proteins}g of proteins. "
+    explanation += f"{recipe_macros['carbs']}g of carbs, {recipe_macros['fats']}g of fats, and {recipe_macros['proteins']}g of proteins. "
 
-  # Ideal macronutrient distribution (assumed as 50%-20%-30%)
+    # Ideal macronutrient distribution (50%-20%-30%)
     ideal_macros_distribution = {"carbs": 50, "fats": 20, "proteins": 30}
 
     if user_sex is None or user_sex == "":
@@ -1879,6 +1892,7 @@ def foodMacros_one(recipe, user):
         }
         man_or_woman = "man" if user_sex == "m" else "woman"
 
+    # Is this useful in this kind of explanation? 
     if user_activity == 'low':
         ideal_macros["carbs"] += 5
         ideal_macros["fats"] += 2
@@ -1897,46 +1911,118 @@ def foodMacros_one(recipe, user):
         + man_or_woman
         + " with your goal and type of activity is "
         + f"{ideal_macros['carbs']}% carbs, {ideal_macros['fats']}% fats, {ideal_macros['proteins']}% proteins. "
-    )
-
-    # Calculate deviations based on the total of macronutrients
-    total_recipe_macros = (
-        recipe_carbs + recipe_fats + recipe_proteins
-    )
-    
-    # Check if the recipe's macronutrient distribution deviates from the ideal ratio
-    carbs_deviation = abs(
-        (recipe_carbs / total_recipe_macros) * 100 - ideal_macros["carbs"]
-    )
-    fats_deviation = abs(
-        (recipe_fats / total_recipe_macros) * 100 - ideal_macros["fats"]
-    )
-    proteins_deviation = abs(
-        (recipe_proteins / total_recipe_macros) * 100 - ideal_macros["proteins"]
-    )
-
-    # Threshold for considering a significant deviation (you can adjust this as needed)
-    deviation_threshold = 15
-
-    if (
-        carbs_deviation > deviation_threshold
-        or fats_deviation > deviation_threshold
-        or proteins_deviation > deviation_threshold
-    ):
-        explanation += (
-            "This recipe may not be the best choice as it deviates significantly "
-            "from the ideal macronutrient ratio. "
         )
-        
-        explanation += f"Carbs Deviation: {carbs_deviation:.2f}%, Fats Deviation: {fats_deviation:.2f}%, Proteins Deviation: {proteins_deviation:.2f}%. "
+
+    total_recipe_macros = (recipe_macros["carbs"] + recipe_macros["fats"] + recipe_macros["proteins"])
+
+    carbs_deviation = recipe_macros["carbs"] - (total_recipe_macros * (ideal_macros["carbs"] / 100))
+    fats_deviation = recipe_macros["fats"] - (total_recipe_macros * (ideal_macros["fats"] / 100))
+    proteins_deviation = recipe_macros["proteins"] - (total_recipe_macros * (ideal_macros["proteins"] / 100))
+
+    deviation_threshold = 4
+
+    deviation_summary = []
+
+    if carbs_deviation > deviation_threshold:
+        deviation_summary.append("It is high in carbs.")
+    elif carbs_deviation < -deviation_threshold:
+        deviation_summary.append("It is low in carbs.")
+
+    if fats_deviation > deviation_threshold:
+        deviation_summary.append("It is high in fats.")
+    elif fats_deviation < -deviation_threshold:
+        deviation_summary.append("It is low in fats.")
+
+    if proteins_deviation > deviation_threshold:
+        deviation_summary.append("It is high in proteins.")
+    elif proteins_deviation < -deviation_threshold:
+        deviation_summary.append("It is low in proteins.")
+
+    if deviation_summary:
+        explanation += "This recipe may not be the best choice as it deviates significantly from the ideal macronutrient ratio. "
+        explanation += " ".join(deviation_summary) + " Consider adjusting the portion size or exploring other recipes. "
     else:
-        explanation += (
-            "This recipe is a good choice as it closely aligns with the ideal "
-            "macronutrient distribution. "
+        explanation += "This recipe is a good choice as it closely aligns with the ideal macronutrient distribution, in fact "
+
+    #remove?
+    explanation += f"The deviations from ideal values are: carbs = {round(carbs_deviation, 2)}, "
+    explanation += f"fats= {round(fats_deviation, 2)}, "
+    explanation += f"proteins = {round(proteins_deviation, 2)}"
+    explanation += " (anything in [-4,4] is good). "
+
+    return explanation, deviation_summary
+    
+
+def foodMacros_two(recipeA, recipeB, user):
+    user_activity= user["Activity"]
+    user_sex= user["Sex"]
+    explanationA, deviation_summaryA= foodMacros_one(recipeA, user)
+    explanationB, deviation_summaryB = foodMacros_one(recipeB, user)
+
+    ideal_macros_distribution = {"carbs": 50, "fats": 20, "proteins": 30}
+
+    if user_sex is None or user_sex == "":
+        ideal_macros = {
+            "carbs": ideal_macros_distribution["carbs"],
+            "fats": ideal_macros_distribution["fats"],
+            "proteins": ideal_macros_distribution["proteins"]
+        }
+        man_or_woman = "person of unspecified sex"
+    else:
+        ideal_macros = {
+            "carbs": ideal_macros_distribution["carbs"],
+            "fats": ideal_macros_distribution["fats"],
+            "proteins": ideal_macros_distribution["proteins"]
+        }
+        man_or_woman = "man" if user_sex == "m" else "woman"
+
+
+    # Is this useful in this kind of explanation? 
+    if user_activity == 'low':
+        ideal_macros["carbs"] += 5
+        ideal_macros["fats"] += 2
+        ideal_macros["proteins"] -= 3
+    elif user_activity == 'normal':
+        ideal_macros["carbs"] += 10
+        ideal_macros["fats"] += 5
+        ideal_macros["proteins"] += 5
+    elif user_activity == 'high':
+        ideal_macros["carbs"] += 15
+        ideal_macros["fats"] += 8
+        ideal_macros["proteins"] += 10
+
+    useless_expl = (
+        "The ideal macronutrient distribution for a "
+        + man_or_woman
+        + " with your goal and type of activity is "
+        + f"{ideal_macros['carbs']}% carbs, {ideal_macros['fats']}% fats, {ideal_macros['proteins']}% proteins. "
         )
+
+    explanation = explanationA + explanationB
+    explanation = str(explanation).replace(useless_expl, "")
+
+    if deviation_summaryA == [] and deviation_summaryB == []:
+        explanation += "In this case there is really no recipe better than the other, they both seem well balanced in the macro-nurients composition."
+
+    if deviation_summaryA == [] and deviation_summaryB != []:
+        explanation += "Between the two, " + recipeA["title"] + " seems more balanced in the macro-nurients composition."
+
+    if deviation_summaryB == [] and deviation_summaryA != []:
+        explanation += "Between the two, " + recipeB["title"] + " seems more balanced in the macro-nurients composition."
+
+    if deviation_summaryA != [] and deviation_summaryB != []:
+        if len(deviation_summaryA) == len(deviation_summaryB):
+            if deviation_summaryA.count('low') == deviation_summaryB.count('low'):
+                explanation += "In this case there is really no recipe better than the other, they both seem very unbalanced in the macro-nurients composition."
+
+            if deviation_summaryA.count('low') > deviation_summaryB.count('low'):
+                explanation += "Between the two, " + recipeA["title"] + " seems less unbalanced in the macro-nurients composition."
+            elif deviation_summaryA.count('low') < deviation_summaryB.count('low'):
+                explanation += "Between the two, " + recipeB["title"] + " seems less unbalanced in the macro-nurients composition."
+
+        if len(deviation_summaryA) < len(deviation_summaryB):
+            explanation += "Between the two, " + recipeA["title"] + " seems less unbalanced in the macro-nurients composition."
+        elif len(deviation_summaryA) > len(deviation_summaryB):
+            explanation += "Between the two, " + recipeB["title"] + " seems less unbalanced in the macro-nurients composition."
 
     return explanation
-
-
-def foodMacros_two():
-    pass

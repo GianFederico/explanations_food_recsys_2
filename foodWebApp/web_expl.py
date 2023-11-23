@@ -132,7 +132,7 @@ class Explain(Resource):
             "ingredientsSeasonality_two",       # 15
             "ingredientsDopamine_two",          # 16
             "descriptions",                     # 17
-            "smartExplanation_two"              # 18
+            "smartExplanation_two",              # 18
             "foodMacros_two"                    # 19
         ]
 
