@@ -1516,6 +1516,10 @@ def smartExplanation(user, recipeA, recipeB, listRestrictions, nutrients, restri
         else:
             if user["Sex"] is None:
                 explanation += userFeatureHealthRisk(user, recipeA, recipeB, nutrients)
+                if recipeB is None:
+                    explanation += foodMacros_one(recipeA, user)
+                else:
+                    explanation += foodMacros_two(recipeA, recipeB, user)
             else:
                 if user["Activity"] == "low" or user["Activity"] == "high" or user["Activity"] == "normal": #@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
                     if recipeB is None:
