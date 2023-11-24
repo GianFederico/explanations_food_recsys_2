@@ -1514,7 +1514,15 @@ def smartExplanation(user, recipeA, recipeB, listRestrictions, nutrients, restri
         if user["Mood"] == "bad" or user["Depressed"] == "yes" or user["Stressed"] == "yes":
             explanation += userFeatureHealthBenefits(user, recipeA, recipeB, nutrients)
         else:
-            explanation += userFeatureHealthRisk(user, recipeA, recipeB, nutrients)
+            if user["Sex"] is None:
+                explanation += userFeatureHealthRisk(user, recipeA, recipeB, nutrients)
+            else:
+                if user["Activity"] == "low" or user["Activity"] == "high" or user["Activity"] == "normal": #@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
+                    if recipeB is None:
+                        explanation += foodGoals_one(recipeA, user)
+                    else:
+                        explanation += foodGoals_two(recipeA, recipeB, user)   
+                
 
         if user["Health_style"] is not None and user["Health_condition"] is not None:
             if (int(user["Health_style"]) - int(user["Health_condition"]) >= 2) and (int(user["Health_condition"]) <= 2):
@@ -1537,7 +1545,7 @@ def smartExplanation(user, recipeA, recipeB, listRestrictions, nutrients, restri
                     explanation += userAge_two(user["Age"], recipeA, recipeB, richIn)
 
         if explanationDone_flag == 0 and user["Health_condition"] is not None:
-            if int(user["Health_condition"]) <= 2 or user["Activity"] == "low":
+            if int(user["Health_condition"]) <= 2:
                 explanationDone_flag = 1
                 explanation += foodFeatureHealthRiskBenefit(recipeA, recipeB, nutrients, "benefits")
                 if recipeB is None:
@@ -1557,7 +1565,7 @@ def smartExplanation(user, recipeA, recipeB, listRestrictions, nutrients, restri
                     explanationDone_flag = 1
                     explanation += expl
 
-        if explanationDone_flag == 0 and user["User_ingredients"] != "":
+        if explanationDone_flag == 0 and user["User_ingredients"] != None:
             user_ingredients = user["User_ingredients"].split(",")
             if recipeB is None:
                 expl, favInRecipe = userIngredients_one(user_ingredients, recipeA)
@@ -1948,11 +1956,15 @@ def foodMacros_one(recipe, user):
     explanation += f"The deviations from ideal values are: carbs = {round(carbs_deviation, 2)}, "
     explanation += f"fats= {round(fats_deviation, 2)}, "
     explanation += f"proteins = {round(proteins_deviation, 2)}"
-    explanation += " (anything in [-4,4] is good). "
+    explanation += " (anything in [-"+ str(deviation_threshold) + "," + str(deviation_threshold) + "] is good). "
 
     return explanation, deviation_summary
     
 
+"""
+The foodMacros_two function 
+combines the foodMacros_one explanations for different recipes and chooses one of the two recipes based on how many macro-ratios they respect 
+"""
 def foodMacros_two(recipeA, recipeB, user):
     user_activity= user["Activity"]
     user_sex= user["Sex"]
