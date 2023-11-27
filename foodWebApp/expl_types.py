@@ -52,8 +52,84 @@ The user's sex and goal (lose -> lose weight, gain -> gain weight, no -> maintai
 and the recipe's calories are taken into account to check if the given recipe
 may be a good fit for the user.
 """
+# def foodGoals_one(recipe, user):
+#     explanation = ""
+#     recipe_calories = recipe["calories"]
+#     user_sex = user["Sex"]
+#     user_goal = user["Goal"]
+#     user_activity = user["Activity"]
+
+#     explanation = recipe["title"] + " has " + str(recipe_calories) + " Kcal. "
+
+#     # Average daily calorie intake for men: 2500 Kcal
+#     # Average daily calorie intake for women: 2000 Kcal
+#     # Assumption: a single meal is 40% of the daily intake
+
+#     # Average daily calorie intake for men and women
+#     average_daily_intake = {
+#         "m": {"lose": 2000, "gain": 2500, "no": 2250},
+#         "f": {"lose": 1600, "gain": 1900, "no": 1700},
+#     }
+
+#     if user_sex is None or user_sex == "": # TO CHECK cannot take none or "" as user[sex] value 
+#         intake = average_daily_intake["m"]["no"] if user_goal == "no" else average_daily_intake["f"]["no"]
+#         man_or_woman = "person of unspecified sex"
+#         if user_activity == 'low':
+#             intake += 0
+#         elif user_activity == 'normal':
+#             intake += 150
+#         elif user_activity == 'high':
+#             intake +=250
+
+#     else:
+#         intake = average_daily_intake[user_sex][user_goal]
+#         man_or_woman = "man" if user_sex == "m" else "woman"
+#         if user_activity == 'low':
+#             intake += 0
+#         elif user_activity == 'normal':
+#             intake += 150
+#         elif user_activity == 'high':
+#             intake +=250
+
+#     if recipe_calories < intake*0.15 and user_goal=='lose':
+#         explanation += "It is a good choice, since you are aiming to " + user_goal + " weight. "
+#     elif recipe_calories > intake*0.15 and user_goal=='lose':
+#         explanation += "It may not be the best choice, since you are aiming to " + user_goal + " weight (high-kcal). "
+
+#     if recipe_calories > intake*0.25 and user_goal=='gain':
+#         explanation += "It is a good choice, since you are aiming to " + user_goal + " weight. "
+#     elif recipe_calories < intake*0.25 and user_goal=='gain':
+#         explanation += "It may not be the best choice, since you are aiming to " + user_goal + " weight (low-kcal). "
+
+#     if intake*0.15 < recipe_calories < intake*0.25 and user_goal=='no':
+#         explanation += "It is a good choice, since you are aiming to maintain weight. "
+#     elif recipe_calories < intake*0.15  and user_goal=='no':
+#         explanation += "It may not be the best choice, since you are aiming to maintain weight (low-kcal). "
+#     elif recipe_calories > intake*0.25 and user_goal=='no':
+#         explanation += "It may not be the best choice, since you are aiming to maintain weight (high-kcal). "
+
+#     percentage = round((recipe_calories / intake) * 100, 2)
+#     explanation += (
+#         "The average daily calorie intake for a "
+#         + man_or_woman
+#         + " with your goal and type of activity is "
+#         + str(intake)
+#         + " Kcal and this recipe represents "
+#         + str(percentage)
+#         + "% of your daily intake. "
+#     )
+
+#     return explanation
+
+
+
+
+
+
+#___________________________________________________________persuasive attempt_________________________________________________________________________________________________________
+
 def foodGoals_one(recipe, user):
-    explanation = ""
+    explanation = "We're glad you're taking steps towards your nutritional goals! " ###################################positive language + commitment (aknowledgemnt of actions)
     recipe_calories = recipe["calories"]
     user_sex = user["Sex"]
     user_goal = user["Goal"]
@@ -91,25 +167,8 @@ def foodGoals_one(recipe, user):
         elif user_activity == 'high':
             intake +=250
 
-    if recipe_calories < intake*0.15 and user_goal=='lose':
-        explanation += "It is a good choice, since you are aiming to " + user_goal + " weight. "
-    elif recipe_calories > intake*0.15 and user_goal=='lose':
-        explanation += "It may not be the best choice, since you are aiming to " + user_goal + " weight (high-kcal). "
-
-    if recipe_calories > intake*0.25 and user_goal=='gain':
-        explanation += "It is a good choice, since you are aiming to " + user_goal + " weight. "
-    elif recipe_calories < intake*0.25 and user_goal=='gain':
-        explanation += "It may not be the best choice, since you are aiming to " + user_goal + " weight (low-kcal). "
-
-    if intake*0.15 < recipe_calories < intake*0.25 and user_goal=='no':
-        explanation += "It is a good choice, since you are aiming to maintain weight. "
-    elif recipe_calories < intake*0.15  and user_goal=='no':
-        explanation += "It may not be the best choice, since you are aiming to maintain weight (low-kcal). "
-    elif recipe_calories > intake*0.25 and user_goal=='no':
-        explanation += "It may not be the best choice, since you are aiming to maintain weight (high-kcal). "
-
     percentage = round((recipe_calories / intake) * 100, 2)
-    explanation += (
+    additional_explanation = (
         "The average daily calorie intake for a "
         + man_or_woman
         + " with your goal and type of activity is "
@@ -119,7 +178,54 @@ def foodGoals_one(recipe, user):
         + "% of your daily intake. "
     )
 
+    if recipe_calories < intake*0.07 and user_goal=='lose':
+        explanation += "It is a good choice, since you are aiming to " + user_goal + " weight. "
+        explanation += additional_explanation
+        explanation += "Many users with similar goals and activity levels have enjoyed this recipe." ###############################################social proof
+        
+    elif recipe_calories > intake*0.07 and user_goal=='lose':
+        explanation += "It may not be the best choice, since you are aiming to " + user_goal + " weight (high-kcal). "
+        explanation += additional_explanation
+        explanation += "While this recipe may not align perfectly with your current goals and activity levels, there are plenty of other delicious options waiting for you." 
+                            #########################pos language still encouraging the user
+
+    if recipe_calories > intake*0.10 and user_goal=='gain':
+        explanation += "It is a good choice, since you are aiming to " + user_goal + " weight. "
+        explanation += additional_explanation
+        explanation += "Many users with similar goals and activity levels have enjoyed this recipe." ###############################################social proof
+    elif recipe_calories < intake*0.10 and user_goal=='gain':
+        explanation += "It may not be the best choice, since you are aiming to " + user_goal + " weight (low-kcal). "
+        explanation += additional_explanation
+        explanation += "While this recipe may not align perfectly with your current goals and activity levels, there are plenty of other delicious options waiting for you."
+
+    if intake*0.07 < recipe_calories < intake*0.10 and user_goal=='no':
+        explanation += "It is a good choice, since you are aiming to maintain weight. "
+        explanation += additional_explanation
+        explanation += "Many users with similar goals and activity levels have enjoyed this recipe." ###############################################social proof
+    elif recipe_calories < intake*0.07  and user_goal=='no':
+        explanation += "It may not be the best choice, since you are aiming to maintain weight (low-kcal). "
+        explanation += additional_explanation
+        explanation += "While this recipe may not align perfectly with your current goals and activity levels, there are plenty of other delicious options waiting for you."
+                                #########################pos language still encouraging the user
+    elif recipe_calories > intake*0.10 and user_goal=='no':
+        explanation += "It may not be the best choice, since you are aiming to maintain weight (high-kcal). "
+        explanation += additional_explanation
+        explanation += "While this recipe may not align perfectly with your current goals and activity levels, there are plenty of other delicious options waiting for you."
+                                #########################pos language still encouraging the user
+    
     return explanation
+
+#______________________________________________________________________________________________________________________________________________________________________________________
+
+
+
+
+
+
+
+
+
+
 
 
 """
@@ -201,7 +307,6 @@ def foodGoals_two(recipeA, recipeB, user):
             + "% of your daily intake. "
         )
     else:
-        # For recipeA #is it ok to work on the string?
         explanation_A = foodGoals_one(recipeA, user)
         explanation_B = foodGoals_one(recipeB, user)
         useless_expl = (
@@ -1516,7 +1621,7 @@ def smartExplanation(user, recipeA, recipeB, listRestrictions, nutrients, restri
         else:
             if user["Sex"] is None:
                 explanation += userFeatureHealthRisk(user, recipeA, recipeB, nutrients)
-                if recipeB is None:
+                if recipeB is None: #@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
                     explanation += foodMacros_one(recipeA, user)
                 else:
                     explanation += foodMacros_two(recipeA, recipeB, user)
@@ -1921,7 +2026,7 @@ def foodMacros_one(recipe, user):
     explanation += (
         "The ideal macronutrient distribution for a "
         + man_or_woman
-        + " with your goal and type of activity is "
+        + " with your type of activity is "
         + f"{ideal_macros['carbs']}% carbs, {ideal_macros['fats']}% fats, {ideal_macros['proteins']}% proteins. "
         )
 
