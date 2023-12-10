@@ -91,21 +91,21 @@ may be a good fit for the user.
 #         elif user_activity == 'high':
 #             intake +=250
 
-#     if recipe_calories < intake*0.15 and user_goal=='lose':
+#     if recipe_calories < intake*0.07 and user_goal=='lose':
 #         explanation += "It is a good choice, since you are aiming to " + user_goal + " weight. "
-#     elif recipe_calories > intake*0.15 and user_goal=='lose':
+#     elif recipe_calories > intake*0.07 and user_goal=='lose':
 #         explanation += "It may not be the best choice, since you are aiming to " + user_goal + " weight (high-kcal). "
 
-#     if recipe_calories > intake*0.25 and user_goal=='gain':
+#     if recipe_calories > intake*0.10 and user_goal=='gain':
 #         explanation += "It is a good choice, since you are aiming to " + user_goal + " weight. "
-#     elif recipe_calories < intake*0.25 and user_goal=='gain':
+#     elif recipe_calories < intake*0.10 and user_goal=='gain':
 #         explanation += "It may not be the best choice, since you are aiming to " + user_goal + " weight (low-kcal). "
 
-#     if intake*0.15 < recipe_calories < intake*0.25 and user_goal=='no':
+#     if intake*0.07 < recipe_calories < intake*0.10 and user_goal=='no':
 #         explanation += "It is a good choice, since you are aiming to maintain weight. "
-#     elif recipe_calories < intake*0.15  and user_goal=='no':
+#     elif recipe_calories < intake*0.07  and user_goal=='no':
 #         explanation += "It may not be the best choice, since you are aiming to maintain weight (low-kcal). "
-#     elif recipe_calories > intake*0.25 and user_goal=='no':
+#     elif recipe_calories > intake*0.10 and user_goal=='no':
 #         explanation += "It may not be the best choice, since you are aiming to maintain weight (high-kcal). "
 
 #     percentage = round((recipe_calories / intake) * 100, 2)
@@ -389,7 +389,7 @@ def foodPreferences_one(userRestrictions, listRestrictions, restrictions, recipe
 
             explanation += "."
 
-    return explanation
+    return explanation, not_followed_restrictions
 
 
 """
@@ -398,12 +398,20 @@ The foodPreferences_two explanation function calls foodPreferences_one on two re
 def foodPreferences_two(userRestrictions, listRestrictions, restrictions, recipeA, recipeB): 
     explanation = ""
 
-    explA = foodPreferences_one(userRestrictions, listRestrictions, restrictions, recipeA)
-    explB = foodPreferences_one(userRestrictions, listRestrictions, restrictions, recipeB)
+    explA, not_followed_rest_A = foodPreferences_one(userRestrictions, listRestrictions, restrictions, recipeA)
+    explB, not_followed_rest_B = foodPreferences_one(userRestrictions, listRestrictions, restrictions, recipeB)
     if explA != -1 and explA != -2:
         explanation = explA + " On the other hand, " + explB
     else:
         explanation = explA
+
+    if not_followed_rest_A > not_followed_rest_B:
+        explanation += " It seems that " + recipeB["title"] + "fits better your restrictions."
+    elif not_followed_rest_A < not_followed_rest_B:
+        explanation += " It seems that " + recipeA["title"] + "fits better your restrictions."
+    else:
+        explanation += " In this case there really isn't a better recipe between the two."
+        
 
     return explanation
 
@@ -888,6 +896,8 @@ def userTime_two(user_time, recipeA_values, recipeB_values):
     recipeA_prepTime = int(re.findall(r'\d+', recipeA_values['totalTime'])[0])
     recipeB_prepTime = int(re.findall(r'\d+', recipeB_values['totalTime'])[0])
 
+
+
     if recipeA_prepTime < recipeB_prepTime:
         explanation = recipeA_values['title'] + " can be prepared in less time (" \
                       + str(recipeA_prepTime) + " minutes) than " + recipeB_values['title'] + " (" \
@@ -901,10 +911,17 @@ def userTime_two(user_time, recipeA_values, recipeB_values):
                       + recipeB_values['title'] + " (" + str(recipeA_prepTime) + " minutes)"
 
     if user_time != 0:
+        diffA = abs(recipeA_prepTime - int(user_time))
+        diffB = abs(recipeB_prepTime - int(user_time))
         explanation += ", and you prefer recipes that require a maximum of " \
-                       + str(user_time) + " minutes of preparation time."
+                       + str(user_time) + " minutes of preparation time. "
+        if diffA > diffB:
+            explanation +=  recipeB_values['title'] + " seems closer to your time-frame."
+        else:
+            explanation +=  recipeA_values['title'] + " seems closer to your time-frame."
     else:
         explanation += "."
+    
 
     return explanation
 
@@ -1992,7 +2009,7 @@ def foodMacros_one(recipe, user):
     explanation += f"{recipe_macros['carbs']}g of carbs, {recipe_macros['fats']}g of fats, and {recipe_macros['proteins']}g of proteins. "
 
     # Ideal macronutrient distribution (50%-20%-30%)
-    ideal_macros_distribution = {"carbs": 50, "fats": 20, "proteins": 30}
+    ideal_macros_distribution = {"carbs": 50, "fats": 20, "proteins": 30} #fonte
 
     if user_sex is None or user_sex == "":
         ideal_macros = {
@@ -2027,8 +2044,7 @@ def foodMacros_one(recipe, user):
         "The ideal macronutrient distribution for a "
         + man_or_woman
         + " with your type of activity is "
-        + f"{ideal_macros['carbs']}% carbs, {ideal_macros['fats']}% fats, {ideal_macros['proteins']}% proteins. "
-        )
+        + f"{ideal_macros['carbs']}% carbs, {ideal_macros['fats']}% fats, {ideal_macros['proteins']}% proteins. ")
 
     total_recipe_macros = (recipe_macros["carbs"] + recipe_macros["fats"] + recipe_macros["proteins"])
 
@@ -2080,7 +2096,7 @@ def foodMacros_two(recipeA, recipeB, user):
     explanationA, deviation_summaryA= foodMacros_one(recipeA, user)
     explanationB, deviation_summaryB = foodMacros_one(recipeB, user)
 
-    ideal_macros_distribution = {"carbs": 50, "fats": 20, "proteins": 30}
+    ideal_macros_distribution = {"carbs": 50, "fats": 20, "proteins": 30}  #Kreider, R. B., Wilborn, C. D., Taylor, L., Campbell, B., Almada, A. L., Collins, R., Cooke, M., Earnest, C. P., Greenwood, M., Kalman, D. S., Kerksick, C. M., Kleiner, S. M., Leutholtz, B., Lopez, H., Lowery, L. M., Mendel, R., Smith, A., Spano, M., Wildman, R., . . .  Antonio, J. (2010). ISSN exercise & sport nutrition review: Research & recommendations. Journal of the International Society of Sports Nutrition, 7, 7. https://doi.org/10.1186/1550-2783-7-7
 
     if user_sex is None or user_sex == "":
         ideal_macros = {
